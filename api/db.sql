@@ -1,5 +1,5 @@
 -- Main Database Creation. Create if not existed
-CREATE DATABASE IF NOT EXISTS real_or_fake;
+CREATE DATABASE IF NOT EXISTS realDB;
 
 -- User Table Creation. Create if not existed
 CREATE TABLE
@@ -8,6 +8,8 @@ CREATE TABLE
         username VARCHAR(255) NOT NULL UNIQUE,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
-        role ENUM ('user', 'admin') DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        role ENUM ('user') DEFAULT 'user',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        is_logged_in BOOLEAN DEFAULT FALSE
     );

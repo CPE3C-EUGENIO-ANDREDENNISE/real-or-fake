@@ -1,16 +1,21 @@
-/* DATABASE CONFIGURATION:
-connect to the database*/
+/* CONFIG.JS: MAIN CONFIGURATION*/
 
-const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'realDB',
-    port: process.env.DB_PORT || 3306,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+module.exports = {
+    //Server
+    PORT: process.env.PORT || 3006,
+    NODE_ENV: process.env.NODE_ENV || 'development',
+
+    //News API
+    NEWS_API_KEY: process.env.NEWS_API_KEY,
+    GUARDIAN_API_KEY: process.env.GUARDIAN_API_KEY,
+
+    //JWT
+    JWT_SECRET: process.env.JWT_SECRET,
+    JWT_EXPIRES_IN: '24h',
+
+    //Frontend URL
+    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173'
+
 };
