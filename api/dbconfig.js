@@ -1,7 +1,9 @@
 /* DBCONFIG.JS: DATABASE CONFIGURATION */
 
-const mysql = require('mysql2/promise');
-require('dotenv').config();
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
@@ -17,4 +19,4 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig);
 
-module.exports = pool;
+export default pool;

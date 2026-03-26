@@ -1,8 +1,10 @@
 /* CONFIG.JS: MAIN CONFIGURATION*/
 
-require('dotenv').config();
+import dotenv from 'dotenv';
 
-module.exports = {
+dotenv.config();
+
+export default {
     //Server
     PORT: process.env.PORT || 3006,
     NODE_ENV: process.env.NODE_ENV || 'development',
