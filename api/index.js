@@ -22,6 +22,9 @@ app.use('/api/sentiment', sentimentRoutes);
 // Mount news routes at /api/news
 app.use('/api/news', newsRoutes);
 
+console.log('Guardian API Key loaded:', !!config.GUARDIAN_API_KEY);
+console.log('First few chars:', config.GUARDIAN_API_KEY?.substring(0, 5));
+
 app.get('/api/health', async (req, res) => {
     try {
         await pool.query('SELECT 1');
