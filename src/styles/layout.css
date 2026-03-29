@@ -1,1 +1,247 @@
+/* ─── BASE LAYOUT ─── */
+.layout {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  background: radial-gradient(ellipse at 65% 40%, #0f2044 0%, #080d1f 55%, #020617 100%);
+  font-family: 'Inter', sans-serif;
+  color: white;
+}
 
+.particles-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ─── BODY ROW ─── */
+.layout-body {
+  display: flex;
+  flex: 1;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  min-height: 100vh;
+  padding: 28px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding: 0 6px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(45deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-item:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-item.active {
+  color: #38bdf8;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.12), rgba(99, 102, 241, 0.08));
+  border: 1px solid rgba(56, 189, 248, 0.15);
+}
+
+.nav-item svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+/* ─── PAGE CONTENT ─── */
+.page-content {
+  flex: 1;
+  min-width: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── DESKTOP HEADER ─── */
+.site-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 16px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 2;
+  position: relative;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ─── BUTTONS ─── */
+.btn-login {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-login:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: white;
+}
+
+.btn-signup {
+  background: linear-gradient(135deg, #6366f1, #22d3ee);
+  border: none;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.35);
+}
+
+.btn-signup:hover { opacity: 0.85; }
+
+/* ─── MOBILE TOPBAR — hidden by default ─── */
+.topbar { display: none; }
+
+.menu-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 8px;
+}
+
+.menu-btn span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* ─── TABLET ─── */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+    min-width: 200px;
+  }
+}
+
+/* ─── MOBILE ─── */
+@media (max-width: 768px) {
+  .topbar {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    gap: 12px;
+    background: rgba(8, 14, 35, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    z-index: 99;
+    position: sticky;
+    top: 0;
+  }
+
+  .topbar .logo-wrap { margin-bottom: 0; }
+
+  .site-header { display: none; }
+
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 260px;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    background: rgba(8, 14, 35, 0.98);
+    backdrop-filter: blur(20px);
+    z-index: 100;
+    padding-top: 80px;
+  }
+
+  .sidebar.open { transform: translateX(0); }
+
+  .sidebar .logo-wrap { display: none; }
+
+  .layout-body { flex-direction: column; }
+
+  .topbar-right .btn-login,
+  .topbar-right .btn-signup {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+}
