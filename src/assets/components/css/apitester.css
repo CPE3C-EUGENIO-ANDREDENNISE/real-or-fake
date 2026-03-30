@@ -1,0 +1,467 @@
+/* API Tester Component Styles */
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Global reset to ensure full coverage */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Remove all margins from root elements but allow scrolling */
+html, body, #root, #app, [data-reactroot] {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  height: auto;
+  width: 100%;
+  background: #ffffff;
+}
+
+html {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100vh;
+  height: auto;
+  overflow-y: auto;
+}
+
+/* Focus states for inputs */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Button hover effects */
+button.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+button.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Tab button active state */
+button[role="tab"].active {
+  background-color: #fff !important;
+  border-top-color: var(--tab-color, #667eea) !important;
+  color: var(--tab-color, #667eea) !important;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  text-align: center;
+  padding: 40px 20px;
+  color: #667eea;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+/* Error box */
+.error-box {
+  background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(235, 51, 73, 0.3);
+}
+
+.error-box strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+}
+
+.error-box p {
+  margin: 0;
+}
+
+/* Success box */
+.success-box {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);
+}
+
+.success-box strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+}
+
+.success-box pre {
+  background: rgba(0, 0, 0, 0.8);
+  color: #38ef7d;
+  padding: 15px;
+  border-radius: 8px;
+  overflow: auto;
+  font-size: 0.85em;
+  margin-top: 15px;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Method badges */
+.badge-get {
+  display: inline-block;
+  background: #3498db;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.badge-post {
+  display: inline-block;
+  background: #27ae60;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+/* Page Container - Full body coverage with scrolling */
+.page-container {
+  min-height: 100vh;
+  height: auto;
+  background: #ffffff;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Main Card */
+.main-card {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  min-height: 100vh;
+  height: auto;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+  text-align: center;
+  color: white;
+}
+
+.title {
+  margin: 0 0 10px 0;
+  font-size: clamp(1.8em, 5vw, 2.5em);
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+  margin: 0;
+  opacity: 0.9;
+  font-size: clamp(0.9em, 3vw, 1.1em);
+}
+
+.base-url-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 20px;
+  border-radius: 20px;
+  margin-top: 15px;
+  font-size: 0.9em;
+  font-family: monospace;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  margin: 0;
+  padding: 0;
+}
+
+.tab {
+  flex: 1 1 auto;
+  min-width: 100px;
+  padding: 16px 20px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  margin: 0;
+}
+
+/* Content */
+.content {
+  padding: 30px 20px;
+  flex: 1;
+  margin: 0;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 25px;
+  padding: 25px;
+  background: #ffffff;
+}
+
+.section-title {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1.3em;
+}
+
+.section-desc {
+  color: #666;
+  margin-bottom: 15px;
+  font-size: 0.95em;
+}
+
+.endpoint-badge {
+  margin-bottom: 20px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9em;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 1em;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+.select {
+  background: white;
+  cursor: pointer;
+  color: #333;
+}
+
+.textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+/* Button */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  margin-top: 10px;
+}
+
+/* Result Section */
+.result-section {
+  padding: 0 20px 30px;
+  margin: 0;
+}
+
+/* Documentation Section */
+.doc-section {
+  background: #fff;
+  padding: 25px 20px;
+  margin-top: 20px;
+  border-top: 2px solid #e9ecef;
+  margin-bottom: 0;
+}
+
+.doc-title {
+  color: #333;
+  font-size: 1.2em;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 10px;
+}
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.doc-column {
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.doc-column-title {
+  font-size: 1em;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.doc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.doc-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+
+/* Mobile responsive - hide tab labels */
+@media (max-width: 768px) {
+  .tab-label {
+    display: none;
+  }
+
+  .tab-icon {
+    font-size: 1.5em;
+  }
+
+  .page-container {
+    padding: 0 !important;
+  }
+
+  .main-card {
+    border-radius: 0 !important;
+  }
+
+  .header {
+    padding: 30px 15px !important;
+  }
+
+  .content {
+    padding: 20px 15px !important;
+  }
+
+  .section {
+    padding: 20px 15px !important;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .doc-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .tabs, .tab, .result-section, .doc-section {
+    margin: 0 !important;
+  }
+}
+
+/* Tablet and up - show tab labels */
+@media (min-width: 769px) {
+  .tab-label {
+    display: inline;
+  }
+}
+
+/* Scrollbar styling for tabs on mobile */
+[role="tablist"] {
+  -webkit-overflow-scrolling: touch;
+  margin: 0;
+  padding: 0;
+}
+
+[role="tablist"]::-webkit-scrollbar {
+  height: 4px;
+}
+
+[role="tablist"]::-webkit-scrollbar-track {
+  background: #e9ecef;
+}
+
+[role="tablist"]::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 2px;
+}
