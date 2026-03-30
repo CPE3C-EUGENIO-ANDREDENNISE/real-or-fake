@@ -33,7 +33,7 @@ function apiTester() {
   const [loading, setLoading] = useState(false)
   const [response, setResponse] = useState(null)
   const [error, setError] = useState(null)
-  
+
   // Refs for scrolling
   const resultRef = useRef(null)
   const contentStartRef = useRef(null)
@@ -47,6 +47,23 @@ function apiTester() {
     q: '', section: '', fromDate: '', toDate: '', page: '1', pageSize: '10'
   })
   const [articleId, setArticleId] = useState('')
+
+  // RSS Feed forms
+  const [rssSearchForm, setRssSearchForm] = useState({ q: '' })
+  const [rssSourcesSelected, setRssSourcesSelected] = useState('')
+  const [rssArticleId, setRssArticleId] = useState('')
+
+  // Fake News Analysis forms
+  const [fakeNewsForm, setFakeNewsForm] = useState({
+    title: '',
+    description: '',
+    bodyText: '',
+    link: '',
+    source: '',
+    byline: ''
+  })
+  const [compareArticles, setCompareArticles] = useState('')
+  const [batchArticles, setBatchArticles] = useState('')
 
   // Auto-run health check on mount
   useEffect(() => {
@@ -146,6 +163,30 @@ function apiTester() {
               setArticleId={setArticleId}
             />
           )}
+          {activeTab === 'rss' && (
+            <RssSection
+              handleRequest={handleRequest}
+              loading={loading}
+              rssSearchForm={rssSearchForm}
+              setRssSearchForm={setRssSearchForm}
+              rssSourcesSelected={rssSourcesSelected}
+              setRssSourcesSelected={setRssSourcesSelected}
+              rssArticleId={rssArticleId}
+              setRssArticleId={setRssArticleId}
+            />
+          )}
+          {activeTab === 'fakenews' && (
+            <FakeNewsSection
+              handleRequest={handleRequest}
+              loading={loading}
+              fakeNewsForm={fakeNewsForm}
+              setFakeNewsForm={setFakeNewsForm}
+              compareArticles={compareArticles}
+              setCompareArticles={setCompareArticles}
+              batchArticles={batchArticles}
+              setBatchArticles={setBatchArticles}
+            />
+          )}
         </main>
 
         {/* Response / Error Display with ref for scrolling */}
@@ -165,7 +206,7 @@ function apiTester() {
             )}
             {response && (
               <div className="success-box">
-                <strong>Response</strong>
+                <strong>✓ Response</strong>
                 <pre>{JSON.stringify(response, null, 2)}</pre>
               </div>
             )}
@@ -199,14 +240,34 @@ function apiTester() {
               ]}
             />
             <DocColumn
-              title="News"
+              title="News (Guardian)"
               color="#e67e22"
               endpoints={[
                 { method: 'GET', path: '/api/news/guardian/search' },
                 { method: 'GET', path: '/api/news/guardian/search-with-sentiment' },
+                { method: 'GET', path: '/api/news/guardian/search-with-analysis' },
                 { method: 'GET', path: '/api/news/guardian/latest/:section' },
                 { method: 'GET', path: '/api/news/guardian/article/:id' },
                 { method: 'GET', path: '/api/news/guardian/sections' }
+              ]}
+            />
+            <DocColumn
+              title="RSS Feeds"
+              color="#2ecc71"
+              endpoints={[
+                { method: 'GET', path: '/api/news/rss/search' },
+                { method: 'GET', path: '/api/news/rss/feeds' },
+                { method: 'GET', path: '/api/news/rss/sources' },
+                { method: 'GET', path: '/api/news/rss/article/:id' }
+              ]}
+            />
+            <DocColumn
+              title="Fake News Analysis"
+              color="#e74c3c"
+              endpoints={[
+                { method: 'POST', path: '/api/news/analyze/fake-score' },
+                { method: 'POST', path: '/api/news/analyze/compare' },
+                { method: 'POST', path: '/api/news/analyze/batch' }
               ]}
             />
           </div>
@@ -216,7 +277,377 @@ function apiTester() {
   )
 }
 
-// ==================== SUB-COMPONENTS (defined outside to prevent re-render issues) ====================
+// ==================== RSS SECTION COMPONENT ====================
+function RssSection({ handleRequest, loading, rssSearchForm, setRssSearchForm, rssSourcesSelected, setRssSourcesSelected, rssArticleId, setRssArticleId }) {
+  const [availableSources, setAvailableSources] = useState([])
+  const [loadingSources, setLoadingSources] = useState(false)
+
+  // Fetch available RSS sources on mount
+  useEffect(() => {
+    const fetchSources = async () => {
+      setLoadingSources(true)
+      const { data, error } = await callApi('GET', '/api/news/rss/sources')
+      if (!error && data?.data) {
+        setAvailableSources(data.data)
+      }
+      setLoadingSources(false)
+    }
+    fetchSources()
+  }, [])
+
+  return (
+    <>
+      <section className="section">
+        <h2 className="section-title"><b>📡 Get Available RSS Sources</b></h2>
+        <p className="section-desc">List all available RSS feed sources with their credibility scores.</p>
+        <div className="endpoint-badge"><span className="badge-get">GET</span> /api/news/rss/sources</div>
+
+        <button
+          onClick={() => handleRequest('GET', '/api/news/rss/sources')}
+          disabled={loading}
+          className="btn-primary"
+        >
+          {loading ? 'Fetching...' : 'Get RSS Sources'}
+        </button>
+
+        {availableSources.length > 0 && (
+          <div className="sources-preview">
+            <h4>Available Sources ({availableSources.length})</h4>
+            <div className="source-grid">
+              {availableSources.slice(0, 6).map(source => (
+                <div key={source.key} className="source-card">
+                  <strong>{source.name}</strong>
+                  <span className={`credibility-badge ${source.credibility >= 90 ? 'high' : source.credibility >= 70 ? 'medium' : 'low'}`}>
+                    {source.credibility}%
+                  </span>
+                  <span className="country-badge">{source.country}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="section">
+        <h2 className="section-title"><b>🔍 Search RSS Feeds</b></h2>
+        <p className="section-desc">Search across all RSS feeds for articles matching your keyword.</p>
+        <div className="endpoint-badge"><span className="badge-get">GET</span> /api/news/rss/search</div>
+
+        <div className="form-group">
+          <label className="label">Search Query *</label>
+          <input
+            type="text"
+            placeholder="e.g., technology, climate, AI"
+            value={rssSearchForm.q}
+            onChange={(e) => setRssSearchForm({ ...rssSearchForm, q: e.target.value })}
+            className="input"
+          />
+        </div>
+
+        <button
+          onClick={() => {
+            const params = new URLSearchParams({ q: rssSearchForm.q })
+            handleRequest('GET', `/api/news/rss/search?${params}`)
+          }}
+          disabled={loading || !rssSearchForm.q}
+          className="btn-primary"
+        >
+          {loading ? 'Searching...' : 'Search RSS Feeds'}
+        </button>
+      </section>
+
+      <section className="section">
+        <h2 className="section-title"><b>📰 Get RSS Feeds by Sources</b></h2>
+        <p className="section-desc">Get articles from specific RSS sources. Leave empty to get all sources.</p>
+        <div className="endpoint-badge"><span className="badge-get">GET</span> /api/news/rss/feeds</div>
+
+        <div className="form-group">
+          <label className="label">Source Keys (comma-separated)</label>
+          <input
+            type="text"
+            placeholder="e.g., bbc, reuters, ap_news"
+            value={rssSourcesSelected}
+            onChange={(e) => setRssSourcesSelected(e.target.value)}
+            className="input"
+          />
+          <small className="help-text">
+            Available: bbc, bbc_world, reuters, ap_news, npr, dw
+          </small>
+        </div>
+
+        <button
+          onClick={() => {
+            const params = rssSourcesSelected ? `?sources=${rssSourcesSelected}` : ''
+            handleRequest('GET', `/api/news/rss/feeds${params}`)
+          }}
+          disabled={loading}
+          className="btn-primary"
+        >
+          {loading ? 'Fetching...' : 'Get RSS Feeds'}
+        </button>
+      </section>
+
+      <section className="section">
+        <h2 className="section-title"><b>📄 Get RSS Article by ID</b></h2>
+        <p className="section-desc">Fetch a specific RSS article by its unique ID.</p>
+        <div className="endpoint-badge"><span className="badge-get">GET</span> /api/news/rss/article/:id</div>
+
+        <div className="form-group">
+          <label className="label">Article ID</label>
+          <input
+            type="text"
+            placeholder="e.g., bbc-abc123def456"
+            value={rssArticleId}
+            onChange={(e) => setRssArticleId(e.target.value)}
+            className="input"
+          />
+          <small className="help-text">
+            Article IDs can be found in the search or feeds response
+          </small>
+        </div>
+
+        <button
+          onClick={() => handleRequest('GET', `/api/news/rss/article/${rssArticleId}`)}
+          disabled={loading || !rssArticleId}
+          className="btn-primary"
+        >
+          {loading ? 'Fetching...' : 'Get Article'}
+        </button>
+      </section>
+    </>
+  )
+}
+
+// ==================== FAKE NEWS ANALYSIS SECTION ====================
+function FakeNewsSection({ handleRequest, loading, fakeNewsForm, setFakeNewsForm, compareArticles, setCompareArticles, batchArticles, setBatchArticles }) {
+  return (
+    <>
+      <section className="section">
+        <h2 className="section-title"><b>🔍 Analyze Single Article (Fake News Score)</b></h2>
+        <p className="section-desc">Analyze a single article for fake news probability based on multiple factors.</p>
+        <div className="endpoint-badge"><span className="badge-post">POST</span> /api/news/analyze/fake-score</div>
+
+        <div className="form-group">
+          <label className="label">Title *</label>
+          <input
+            type="text"
+            placeholder="Article title"
+            value={fakeNewsForm.title}
+            onChange={(e) => setFakeNewsForm({ ...fakeNewsForm, title: e.target.value })}
+            className="input"
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="label">Description / Summary</label>
+          <textarea
+            placeholder="Article description or summary"
+            value={fakeNewsForm.description}
+            onChange={(e) => setFakeNewsForm({ ...fakeNewsForm, description: e.target.value })}
+            rows={3}
+            className="textarea"
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="label">Body Text</label>
+          <textarea
+            placeholder="Full article text (optional but improves accuracy)"
+            value={fakeNewsForm.bodyText}
+            onChange={(e) => setFakeNewsForm({ ...fakeNewsForm, bodyText: e.target.value })}
+            rows={5}
+            className="textarea"
+          />
+        </div>
+
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="label">Article URL / Link</label>
+            <input
+              type="text"
+              placeholder="https://example.com/article"
+              value={fakeNewsForm.link}
+              onChange={(e) => setFakeNewsForm({ ...fakeNewsForm, link: e.target.value })}
+              className="input"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="label">Source / Author</label>
+            <input
+              type="text"
+              placeholder="Source name or byline"
+              value={fakeNewsForm.source}
+              onChange={(e) => setFakeNewsForm({ ...fakeNewsForm, source: e.target.value })}
+              className="input"
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label className="label">Byline (Author)</label>
+          <input
+            type="text"
+            placeholder="Author name"
+            value={fakeNewsForm.byline}
+            onChange={(e) => setFakeNewsForm({ ...fakeNewsForm, byline: e.target.value })}
+            className="input"
+          />
+        </div>
+
+        <button
+          onClick={() => handleRequest('POST', '/api/news/analyze/fake-score', {
+            title: fakeNewsForm.title,
+            description: fakeNewsForm.description,
+            bodyText: fakeNewsForm.bodyText,
+            link: fakeNewsForm.link,
+            source: fakeNewsForm.source,
+            byline: fakeNewsForm.byline
+          })}
+          disabled={loading || !fakeNewsForm.title}
+          className="btn-primary"
+        >
+          {loading ? 'Analyzing...' : 'Calculate Fake News Score'}
+        </button>
+      </section>
+
+      <section className="section">
+        <h2 className="section-title"><b>🔄 Compare Multiple Articles</b></h2>
+        <p className="section-desc">Compare multiple articles to verify facts and find consensus.</p>
+        <div className="endpoint-badge"><span className="badge-post">POST</span> /api/news/analyze/compare</div>
+
+        <div className="form-group">
+          <label className="label">Articles (JSON format)</label>
+          <textarea
+            placeholder='[
+  {"title": "Breaking News: Important Event", "source": "BBC", "description": "..."},
+  {"title": "Breaking News: Important Event", "source": "Reuters", "description": "..."}
+]'
+            value={compareArticles}
+            onChange={(e) => setCompareArticles(e.target.value)}
+            rows={8}
+            className="textarea"
+          />
+          <small className="help-text">
+            Enter articles as JSON array. Each article should have at least a title.
+          </small>
+        </div>
+
+        <button
+          onClick={() => {
+            try {
+              const articles = JSON.parse(compareArticles)
+              handleRequest('POST', '/api/news/analyze/compare', { articles })
+            } catch (e) {
+              alert('Invalid JSON format. Please check your input.')
+            }
+          }}
+          disabled={loading || !compareArticles}
+          className="btn-primary"
+        >
+          {loading ? 'Comparing...' : 'Compare Articles'}
+        </button>
+      </section>
+
+      <section className="section">
+        <h2 className="section-title"><b>📊 Batch Analyze Articles</b></h2>
+        <p className="section-desc">Analyze multiple articles individually and get scores for each.</p>
+        <div className="endpoint-badge"><span className="badge-post">POST</span> /api/news/analyze/batch</div>
+
+        <div className="form-group">
+          <label className="label">Articles (JSON format)</label>
+          <textarea
+            placeholder='[
+  {"title": "Amazing discovery that will shock you!", "source": "Suspicious Site"},
+  {"title": "Scientists find new treatment for disease", "source": "Science Daily"},
+  {"title": "Government hides shocking truth", "source": "Conspiracy News"}
+]'
+            value={batchArticles}
+            onChange={(e) => setBatchArticles(e.target.value)}
+            rows={8}
+            className="textarea"
+          />
+          <small className="help-text">
+            Enter articles as JSON array. Each article will receive an individual fake news score.
+          </small>
+        </div>
+
+        <button
+          onClick={() => {
+            try {
+              const articles = JSON.parse(batchArticles)
+              handleRequest('POST', '/api/news/analyze/batch', { articles })
+            } catch (e) {
+              alert('Invalid JSON format. Please check your input.')
+            }
+          }}
+          disabled={loading || !batchArticles}
+          className="btn-primary"
+        >
+          {loading ? 'Analyzing...' : 'Batch Analyze'}
+        </button>
+      </section>
+
+      {/* Example Articles Section */}
+      <section className="section example-section">
+        <h2 className="section-title"><b>📝 Example Articles to Try</b></h2>
+        <div className="example-grid">
+          <div className="example-card">
+            <h4>Suspicious Article Example</h4>
+            <pre>{`{
+  "title": "SHOCKING: Government Hides Miracle Cure for Cancer!",
+  "description": "Doctors hate this one weird trick that cures all diseases",
+  "source": "NaturalHealthDaily.com",
+  "byline": ""
+}`}</pre>
+            <button
+              onClick={() => {
+                setFakeNewsForm({
+                  title: "SHOCKING: Government Hides Miracle Cure for Cancer!",
+                  description: "Doctors hate this one weird trick that cures all diseases",
+                  bodyText: "",
+                  link: "https://naturalhealthdaily.com/miracle-cure",
+                  source: "NaturalHealthDaily.com",
+                  byline: ""
+                })
+              }}
+              className="btn-example"
+            >
+              Load Example
+            </button>
+          </div>
+
+          <div className="example-card">
+            <h4>Credible Article Example</h4>
+            <pre>{`{
+  "title": "Scientists discover promising new treatment for cancer",
+  "description": "Researchers at Stanford University have found a new compound...",
+  "source": "Reuters",
+  "byline": "Dr. Sarah Johnson"
+}`}</pre>
+            <button
+              onClick={() => {
+                setFakeNewsForm({
+                  title: "Scientists discover promising new treatment for cancer",
+                  description: "Researchers at Stanford University have found a new compound that shows promise in early-stage clinical trials for treating pancreatic cancer.",
+                  bodyText: "The study, published in Nature Medicine, involved 150 patients...",
+                  link: "https://reuters.com/science/cancer-treatment",
+                  source: "Reuters",
+                  byline: "Dr. Sarah Johnson"
+                })
+              }}
+              className="btn-example"
+            >
+              Load Example
+            </button>
+          </div>
+        </div>
+      </section>
+    </>
+  )
+}
+
+// ==================== EXISTING SUB-COMPONENTS ====================
 
 function HealthSection({ handleRequest, loading }) {
   return (
@@ -544,6 +975,34 @@ function NewsSection({ handleRequest, loading, guardianSearchForm, setGuardianSe
       </section>
 
       <section className="section">
+        <h2 className="section-title"><b>Search with Full Analysis</b></h2>
+        <p className="section-desc">Search articles and get both sentiment analysis AND fake news scoring.</p>
+        <div className="endpoint-badge"><span className="badge-get">GET</span> /api/news/guardian/search-with-analysis</div>
+
+        <div className="form-group">
+          <label className="label">Search Query</label>
+          <input
+            type="text"
+            placeholder="e.g., AI breakthrough"
+            value={guardianSearchForm.q}
+            onChange={(e) => setGuardianSearchForm({ ...guardianSearchForm, q: e.target.value })}
+            className="input"
+          />
+        </div>
+
+        <button
+          onClick={() => {
+            const params = new URLSearchParams({ q: guardianSearchForm.q, pageSize: '5' })
+            handleRequest('GET', `/api/news/guardian/search-with-analysis?${params}`)
+          }}
+          disabled={loading || !guardianSearchForm.q}
+          className="btn-primary"
+        >
+          {loading ? 'Searching...' : 'Search + Full Analysis'}
+        </button>
+      </section>
+
+      <section className="section">
         <h2 className="section-title"><b>Get Article by ID</b></h2>
         <p className="section-desc">Fetch a specific Guardian article with sentiment analysis.</p>
         <div className="endpoint-badge"><span className="badge-get">GET</span> /api/news/guardian/article/:id</div>
@@ -639,7 +1098,9 @@ const tabs = [
   { id: 'health', label: 'Health', icon: '🏥', color: '#27ae60' },
   { id: 'auth', label: 'Auth', icon: '👤', color: '#3498db' },
   { id: 'sentiment', label: 'Sentiment', icon: '😊', color: '#9b59b6' },
-  { id: 'news', label: 'News', icon: '📰', color: '#e67e22' }
+  { id: 'news', label: 'Guardian', icon: '📰', color: '#e67e22' },
+  { id: 'rss', label: 'RSS Feeds', icon: '📡', color: '#2ecc71' },
+  { id: 'fakenews', label: 'Fake News', icon: '🔍', color: '#e74c3c' }
 ]
 
 export default apiTester

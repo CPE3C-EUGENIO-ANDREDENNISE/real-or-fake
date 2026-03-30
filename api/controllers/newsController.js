@@ -2,6 +2,7 @@
 
 import * as guardianService from '../services/guardianService.js';
 import { analyzeSentiment } from '../services/sentimentService.js';
+import { calculateFakeNewsProbability } from '../services/fakeNewsScoringService.js';
 
 // GET /api/news/guardian/search?q=keyword - Search Guardian articles
 export async function searchGuardian(req, res) {
@@ -124,6 +125,46 @@ export async function searchWithSentiment(req, res) {
 
     } catch (err) {
         console.error('Guardian search with sentiment error:', err.message);
+        res.status(500).json({ error: 'failed to search and analyze articles' });
+    }
+}
+
+// GET /api/news/guardian/search-with-analysis?q=keyword - Search with sentiment AND fake news scoring
+export async function searchWithAnalysis(req, res) {
+    try {
+        const { q, page, pageSize } = req.query;
+
+        if (!q) {
+            return res.status(400).json({ error: 'query parameter (q) is required' });
+        }
+
+        const articles = await guardianService.searchArticles(q, {
+            page: page ? parseInt(page) : 1,
+            pageSize: pageSize ? parseInt(pageSize) : 5
+        });
+
+        // Add both sentiment and fake news scoring
+        const articlesWithAnalysis = articles.map(article => ({
+            ...article,
+            sentiment: analyzeSentiment(article.bodyText || article.trailText),
+            fakeNewsScore: calculateFakeNewsProbability({
+                title: article.webTitle,
+                description: article.trailText,
+                bodyText: article.bodyText,
+                link: article.webUrl,
+                source: 'The Guardian',
+                byline: article.byline
+            })
+        }));
+
+        res.json({
+            success: true,
+            count: articlesWithAnalysis.length,
+            data: articlesWithAnalysis
+        });
+
+    } catch (err) {
+        console.error('Guardian search with analysis error:', err.message);
         res.status(500).json({ error: 'failed to search and analyze articles' });
     }
 }

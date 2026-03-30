@@ -7,6 +7,7 @@ import pool from './dbconfig.js';
 import authRoutes from './routes/auth.js';
 import sentimentRoutes from './routes/sentiment.js';
 import newsRoutes from './routes/news.js';
+import analyzeRoutes from './routes/analyze.js';
 
 const app = express();
 
@@ -21,6 +22,9 @@ app.use('/api/sentiment', sentimentRoutes);
 
 // Mount news routes at /api/news
 app.use('/api/news', newsRoutes);
+
+// Mount analysis routes at /api/news/analyze
+app.use('/api/news/analyze', analyzeRoutes);
 
 console.log('Guardian API Key loaded:', !!config.GUARDIAN_API_KEY);
 console.log('First few chars:', config.GUARDIAN_API_KEY?.substring(0, 5));
