@@ -1,6 +1,8 @@
 import { useState } from "react";
 import Layout from "../assets/components/Layout";
 import "../styles/contact.css";
+import emailjs from '@emailjs/browser';
+
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ email: '', message: '' });
@@ -34,10 +36,23 @@ export default function ContactPage() {
     setErrors(newErrors);
     if (hasError) return;
 
-    setSent(true);
-    setTimeout(() => setSent(false), 3000);
-    setFormData({ email: '', message: '' });
-    setErrors({ email: '', message: '' });
+    emailjs.send(
+      'YOUR_SERVICE_ID',     // from EmailJS dashboard
+      'YOUR_TEMPLATE_ID',    // from EmailJS dashboard
+      {
+        from_email: formData.email,
+        message: formData.message,
+        to_email: 'verifake@gmail.com',
+      },
+      'YOUR_PUBLIC_KEY'      // from EmailJS dashboard
+    ).then(() => {
+      setSent(true);
+      setTimeout(() => setSent(false), 3000);
+      setFormData({ email: '', message: '' });
+      setErrors({ email: '', message: '' });
+    }).catch(() => {
+      alert('Failed to send message. Please try again.');
+    });
   };
 
   return (
@@ -67,7 +82,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="contact-info-label">General Inquiries</p>
-                    <a href="mailto:contact@verifake.ai" className="contact-info-value">contact@verifake.ai</a>
+                    <a href="mailto:verifake@gmail.com" className="contact-info-value">verifake@gmail.com</a>
                   </div>
                 </div>
 
@@ -81,7 +96,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="contact-info-label">Technical Support</p>
-                    <a href="mailto:support@verifake.ai" className="contact-info-value">support@verifake.ai</a>
+                    <a href="mailto:supportverifake@gmail.com" className="contact-info-value">supportverifake@gmail.com</a>
                   </div>
                 </div>
 
@@ -94,7 +109,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="contact-info-label">Business & Partnerships</p>
-                    <a href="mailto:business@verifake.ai" className="contact-info-value">business@verifake.ai</a>
+                    <a href="mailto:busverifake@gmail.com" className="contact-info-value">busverifake@gmail.com</a>
                   </div>
                 </div>
               </div>
@@ -108,7 +123,7 @@ export default function ContactPage() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
                     </svg>
-                    @VeriFakeAI
+                    @VeriFake
                   </a>
                   <a href="#" className="social-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -122,7 +137,7 @@ export default function ContactPage() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22" />
                     </svg>
-                    verifake-ai
+                    verifake
                   </a>
                 </div>
               </div>
@@ -153,7 +168,7 @@ export default function ContactPage() {
                 <input
                   type="email"
                   className={`form-input ${errors.email ? 'input-error' : ''}`}
-                  placeholder="you@example.com"
+                  placeholder="denver@example.com"
                   value={formData.email}
                   onChange={(e) => {
                     setFormData({ ...formData, email: e.target.value });
