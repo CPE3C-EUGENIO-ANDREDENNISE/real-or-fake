@@ -8,11 +8,21 @@ import authRoutes from './routes/auth.js';
 import sentimentRoutes from './routes/sentiment.js';
 import newsRoutes from './routes/news.js';
 import analyzeRoutes from './routes/analyze.js';
+import { defaultLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
 
+// Trust proxy headers in production (Cloudflare, AWS ALB, etc.)
+// This ensures req.ip reflects the real client IP from X-Forwarded-For
+if (config.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
+
 app.use(cors({ origin: config.FRONTEND_URL }));
 app.use(express.json());
+
+// Apply default rate limiting to all routes
+app.use('/api', defaultLimiter);
 
 // Mount auth routes at /api/auth
 app.use('/api/auth', authRoutes);
