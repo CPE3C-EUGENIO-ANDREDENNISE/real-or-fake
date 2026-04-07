@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import "../../styles/resources-layout.css";
+import "../../styles/resource-layout.css";
 
 export default function ResourcesLayout({ children }) {
   const canvasRef = useRef(null);

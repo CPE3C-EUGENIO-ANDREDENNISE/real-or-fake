@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ResourcesLayout from "../assets/components/ResourcesLayout";
+import ResourcesLayout from "../assets/components/ResourceLayout";
 import "../styles/help-center.css";
 
 const steps = [

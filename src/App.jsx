@@ -15,9 +15,9 @@ import SignUpPage from "./pages/sign-up-page";
 function App() {
   return (
     <>
-      <ApiTester /> 
-      
+
       <Routes>
+        <Route path="/api-tester" element={<ApiTester />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contacts" element={<ContactPage />} />

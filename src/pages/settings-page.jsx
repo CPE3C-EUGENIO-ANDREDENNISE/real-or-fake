@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import UserLayout from "../assets/components/UserLayout";
-import "../styles/settings.css";
+import "../styles/setting.css";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({

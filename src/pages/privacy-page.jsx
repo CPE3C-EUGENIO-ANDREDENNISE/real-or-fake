@@ -1,4 +1,4 @@
-import ResourcesLayout from "../assets/components/ResourcesLayout";
+import ResourcesLayout from "../assets/components/ResourceLayout";
 import "../styles/terms.css";
 
 const privacySections = [
