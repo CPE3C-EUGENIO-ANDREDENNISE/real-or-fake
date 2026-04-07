@@ -9,6 +9,8 @@ import TermsPage from "./pages/terms-page";
 import PrivacyPage from "./pages/privacy-page";
 import LandingPage from "./pages/landing-page";
 import SettingsPage from "./pages/settings-page";
+import LoginPage from "./pages/login-page";
+import SignUpPage from "./pages/sign-up-page";
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/landing" element={<LandingPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
       </Routes>
     </>
   );
