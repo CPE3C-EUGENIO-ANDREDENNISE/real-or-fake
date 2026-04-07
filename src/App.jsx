@@ -7,6 +7,8 @@ import ContactPage from "./pages/contact-page";
 import HelpCenterPage from "./pages/help-center-page";
 import TermsPage from "./pages/terms-page";
 import PrivacyPage from "./pages/privacy-page";
+import LoginPage from "./pages/login-page";
+import SignUpPage from "./pages/sign-up-page";
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
         <Route path="/help-center" element={<HelpCenterPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
       </Routes>
     </>
   );
