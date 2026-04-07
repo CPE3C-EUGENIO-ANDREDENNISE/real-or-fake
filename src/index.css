@@ -114,3 +114,102 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+[data-theme="light"] {
+  background: #f0f4ff;
+}
+
+[data-theme="light"] .user-layout {
+  background: radial-gradient(ellipse at 65% 40%, #dbeafe 0%, #eff6ff 55%, #f0f4ff 100%);
+}
+
+[data-theme="light"] .user-sidebar {
+  background: rgba(255, 255, 255, 0.7);
+  border-right-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .nav-item {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .nav-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+[data-theme="light"] .nav-item.active {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+[data-theme="light"] .logo-text {
+  background: linear-gradient(45deg, #2563eb, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .user-info {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .user-name { color: rgba(0, 0, 0, 0.85); }
+[data-theme="light"] .user-email { color: rgba(0, 0, 0, 0.4); }
+[data-theme="light"] .user-divider { border-top-color: rgba(0, 0, 0, 0.06); }
+
+[data-theme="light"] .account-menu {
+  background: white;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .account-menu-item { color: rgba(0, 0, 0, 0.7); }
+[data-theme="light"] .account-menu-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: black;
+}
+
+[data-theme="light"] .settings-title {
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .settings-subtitle { color: rgba(0, 0, 0, 0.4); }
+
+[data-theme="light"] .landing-title {
+  background: linear-gradient(90deg, #1d4ed8, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .landing-subtitle {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .landing-placeholder h3 {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .landing-placeholder p {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .placeholder-icon {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .search-box {
+  background: rgba(15, 23, 42, 0.75);
+}
+
+[data-theme="light"] .search-box input {
+  color: white;
+  caret-color: white;
+}
+
+[data-theme="light"] .search-box input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
