@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../../styles/layout.css";
 import Footer from "./Footer";
 
-export default function Layout({ children }) {
+export default function Layout({ children, hideSidebar = false, hideTopbar = false, hideFooter = false }) {
   const canvasRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -106,55 +107,60 @@ export default function Layout({ children }) {
       <canvas ref={canvasRef} className="particles-canvas" />
 
       {/* MOBILE TOPBAR */}
-      <div className="topbar">
-        <Link to="/" className="logo-wrap">
-          {logoIcon}
-          <span className="logo-text">VeriFake</span>
-        </Link>
-        <div className="topbar-right">
-          <button className="btn-login">Log in</button>
-          <button className="btn-signup">Sign up</button>
-        </div>
-        <div className="menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-
-      {/* BODY ROW */}
-      <div className="layout-body">
-
-        {/* SIDEBAR */}
-        <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
+      {!hideTopbar && (
+        <div className="topbar">
           <Link to="/" className="logo-wrap">
             {logoIcon}
             <span className="logo-text">VeriFake</span>
           </Link>
-          <nav>
-            {navLinks.map(({ to, label, icon }) => (
-              <Link
-                key={to}
-                to={to}
-                className={`nav-item ${location.pathname === to ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                {icon}
-                {label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
+          <div className="topbar-right">
+            <button className="btn-login" onClick={() => navigate('/login')}>Log in</button>
+            <button className="btn-signup" onClick={() => navigate('/signup')}>Sign up</button>
+          </div>
+          <div className="menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      )}
+
+      {/* BODY ROW */}
+      <div className="layout-body">
+        {/* SIDEBAR */}
+        {!hideSidebar && (
+          <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
+            <Link to="/" className="logo-wrap">
+              {logoIcon}
+              <span className="logo-text">VeriFake</span>
+            </Link>
+            <nav>
+              {navLinks.map(({ to, label, icon }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`nav-item ${location.pathname === to ? 'active' : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {icon}
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          </aside>
+        )}
 
         {/* PAGE CONTENT */}
         <div className="page-content">
-          <header className="site-header">
-            <div className="header-right">
-              <button className="btn-login">Log in</button>
-              <button className="btn-signup">Sign up</button>
-            </div>
-          </header>
+          {!hideTopbar && (
+            <header className="site-header">
+              <div className="header-right">
+                <button className="btn-login" onClick={() => navigate('/login')}>Log in</button>
+                <button className="btn-signup" onClick={() => navigate('/signup')}>Sign up</button>
+              </div>
+            </header>
+          )}
           <main className="page-main">
             {children}
-            <Footer />
+            {!hideFooter && <Footer />}
           </main>
         </div>
 

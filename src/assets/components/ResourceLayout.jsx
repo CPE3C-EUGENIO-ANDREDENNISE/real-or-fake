@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../../styles/resource-layout.css";
 
 export default function ResourcesLayout({ children }) {
   const canvasRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -77,8 +78,8 @@ export default function ResourcesLayout({ children }) {
           <Link to="/contacts" className="public-nav-link">Contacts</Link>
         </div>
         <div className="public-nav-btns">
-          <button className="btn-login">Log in</button>
-          <button className="btn-signup">Sign up</button>
+          <button className="btn-login" onClick={() => navigate('/login')}>Log in</button>
+          <button className="btn-signup" onClick={() => navigate('/signup')}>Sign up</button>
         </div>
       </nav>
 

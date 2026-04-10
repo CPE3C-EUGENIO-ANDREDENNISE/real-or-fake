@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Layout from "../assets/components/Layout";
 import "../styles/auth.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3006';
@@ -54,12 +55,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1 className="auth-title">Login</h1>
-          <p className="auth-text">Access your VeriFake account and continue verifying news.</p>
-        </div>
+    <Layout hideSidebar hideTopbar hideFooter>
+      <div className="auth-page">
+        <div className="auth-card">
+          <div className="auth-header">
+            <h1 className="auth-title">Login</h1>
+            <p className="auth-text">Access your VeriFake account and continue verifying news.</p>
+          </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="auth-field">
@@ -102,5 +104,6 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+    </Layout>
   );
 }

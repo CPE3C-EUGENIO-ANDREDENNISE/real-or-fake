@@ -1,18 +1,19 @@
 .auth-page {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
+  width: 100%;
   padding: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.18), transparent 24%),
-    linear-gradient(180deg, #020617 0%, #070f23 35%, #08132e 100%);
+  background: transparent;
   color: #ffffff;
 }
 
 .auth-card {
   width: min(560px, 100%);
-  background: rgba(10, 18, 38, 0.92);
+  background: rgba(10, 18, 38, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 28px;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
@@ -31,10 +32,13 @@
 .auth-title {
   font-size: clamp(32px, 4vw, 42px);
   font-weight: 700;
-  margin: 0;
-  line-height: 1.05;
+  margin: 0 0 18px;
+  line-height: 1.32;
+  display: inline-block;
+  padding-bottom: 2px;
   background: linear-gradient(90deg, #38bdf8, #818cf8);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
