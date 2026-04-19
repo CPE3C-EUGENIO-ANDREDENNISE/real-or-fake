@@ -46,7 +46,7 @@ export default function LoginPage() {
       localStorage.setItem("authUser", JSON.stringify(data.user));
 
       setStatus({ type: "success", message: "Login successful! Redirecting..." });
-      setTimeout(() => navigate('/'), 900);
+      setTimeout(() => navigate('/landing'), 900);
     } catch (error) {
       setStatus({ type: "error", message: error.message });
     } finally {
