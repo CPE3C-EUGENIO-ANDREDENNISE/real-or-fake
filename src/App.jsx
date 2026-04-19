@@ -13,6 +13,10 @@ import SettingsPage from "./pages/settings-page";
 import LoginPage from "./pages/login-page";
 import SignUpPage from "./pages/sign-up-page";
 
+const PrivateRoute = ({ children }) => {
+  return localStorage.getItem("authToken") ? children : <Navigate to="/login" />;
+};
+
 function App() {
   return (
     <>   
@@ -27,10 +31,14 @@ function App() {
         <Route path="/help-center" element={<HelpCenterPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/landing" element={<LandingPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/landing" element={
+          <PrivateRoute>
+            <LandingPage />
+          </PrivateRoute>
+          } />
       </Routes>
     </>
   );
