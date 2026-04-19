@@ -54,7 +54,7 @@ export default function Footer() {
           <h4 className="footer-col-title">Resources</h4>
           <div className="footer-links">
             <a href="#" className="footer-link">API Documentation</a>
-            <a href="#" className="footer-link">Help Center</a>
+            <Link to="/help-center" className="footer-link">Help Center</Link>
             <Link to="/terms" className="footer-link">Terms & Conditions</Link>
             <Link to="/privacy" className="footer-link">Privacy Policy</Link>
           </div>
