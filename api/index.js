@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.js';
 import sentimentRoutes from './routes/sentiment.js';
 import newsRoutes from './routes/news.js';
 import analyzeRoutes from './routes/analyze.js';
+import checksRoutes from './routes/checks.js';
 import { defaultLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
@@ -35,6 +36,9 @@ app.use('/api/news', newsRoutes);
 
 // Mount analysis routes at /api/news/analyze
 app.use('/api/news/analyze', analyzeRoutes);
+
+// Mount checks routes at /api/checks
+app.use('/api/checks', checksRoutes);
 
 app.get('/api/health', async (req, res) => {
     try {
