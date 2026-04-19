@@ -213,3 +213,21 @@ code {
 [data-theme="light"] .search-box input::placeholder {
   color: rgba(255, 255, 255, 0.4);
 }
+
+[data-theme="light"] .search-box {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+[data-theme="light"] .search-box input {
+  color: rgba(0, 0, 0, 0.75);
+  caret-color: #6366f1;
+}
+
+[data-theme="light"] .search-box input::placeholder {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .search-icon {
+  color: rgba(0, 0, 0, 0.35);
+}
