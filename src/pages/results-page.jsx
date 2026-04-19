@@ -1,10 +1,11 @@
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import Layout from '../assets/components/Layout';
+import UserLayout from '../assets/components/UserLayout';
 import '../styles/results.css';
 
-// Small inline SVG icons to avoid external peer-dep issues
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3006';
+
 function ExternalLinkIcon({ className }) {
   return (
     <svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -14,47 +15,72 @@ function ExternalLinkIcon({ className }) {
     </svg>
   );
 }
+
 import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend
+  PieChart, Pie, Cell, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend
 } from 'recharts';
 
 export default function ResultsPage() {
   const [searchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
+  const type = searchParams.get('type') || 'text';
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('sources');
+  const navigate = useNavigate();
+
+  // Update verdict in database after results load
+  const updateVerdict = async (verdict) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+    try {
+      await fetch(`${API_BASE}/api/checks/update-verdict`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ query: q, verdict })
+      });
+    } catch (err) {
+      console.error('Failed to update verdict:', err);
+    }
+  };
+
+  function mapRiskToVerdict(risk) {
+    if (!risk) return 'mixed';
+    const r = risk.toUpperCase();
+    if (r === 'LOW' || r === 'HIGHLY_VERIFIED') return 'verified';
+    if (r === 'MODERATE' || r === 'VERIFIED' || r === 'PARTIALLY_VERIFIED') return 'mixed';
+    if (r === 'HIGH' || r === 'VERY_HIGH' || r === 'UNVERIFIED') return 'disputed';
+    return 'mixed';
+  }
+
+  // Calculate overall verdict from all articles
+  const getOverallVerdict = (articles) => {
+    if (!articles.length) return 'mixed';
+    const counts = { verified: 0, mixed: 0, disputed: 0 };
+    articles.forEach(a => counts[a.verdict] = (counts[a.verdict] || 0) + 1);
+    return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+  };
 
   useEffect(() => {
     if (!q) return;
     setLoading(true);
     setError(null);
 
-    // If q is a Guardian article URL, fetch that single article and analyze it
+    // Handle Guardian URL
     try {
       const maybeUrl = new URL(q);
       const hostname = maybeUrl.hostname.toLowerCase();
       if (hostname.includes('guardian') || hostname.includes('theguardian.com')) {
         const articleId = maybeUrl.pathname.replace(/^\//, '');
-        // Fetch article from backend
         axios.get(`/api/news/guardian/article/${encodeURIComponent(articleId)}`)
           .then(res => {
             const article = res.data && res.data.data ? res.data.data : null;
-            if (!article) {
-              setArticles([]);
-              return;
-            }
-            // Ask backend to compute fake news score for this article
+            if (!article) { setArticles([]); return; }
             axios.post(`/api/news/analyze/fake-score`, {
               title: article.webTitle,
               description: article.trailText,
@@ -63,59 +89,72 @@ export default function ResultsPage() {
               source: article.sectionName || 'The Guardian',
               byline: article.byline
             })
-            .then(scoreRes => {
-              const scoreData = scoreRes.data && scoreRes.data.data ? scoreRes.data.data : null;
-              setArticles([{
-                source: article.sectionName || 'The Guardian',
-                title: article.webTitle,
-                url: article.webUrl,
-                credibility: 90,
-                sentiment: article.sentiment || 'neutral',
-                date: article.publicationDate || article.pubDate || 'recent',
-                excerpt: article.trailText || '',
-                verdict: scoreData && scoreData.riskLevel ? mapRiskToVerdict(scoreData.riskLevel) : 'mixed',
-                fakeNewsScore: scoreData
-              }]);
-            })
-            .catch(() => {
-              setArticles([{
-                source: article.sectionName || 'The Guardian',
-                title: article.webTitle,
-                url: article.webUrl,
-                credibility: 90,
-                sentiment: article.sentiment || 'neutral',
-                date: article.publicationDate || article.pubDate || 'recent',
-                excerpt: article.trailText || '',
-                verdict: 'mixed'
-              }]);
-            })
-            .finally(() => setLoading(false));
+              .then(scoreRes => {
+                const scoreData = scoreRes.data && scoreRes.data.data ? scoreRes.data.data : null;
+                const verdict = scoreData && scoreData.riskLevel ? mapRiskToVerdict(scoreData.riskLevel) : 'mixed';
+                const result = [{
+                  source: article.sectionName || 'The Guardian',
+                  title: article.webTitle,
+                  url: article.webUrl,
+                  credibility: 90,
+                  sentiment: article.sentiment || 'neutral',
+                  date: article.publicationDate || article.pubDate || 'recent',
+                  excerpt: article.trailText || '',
+                  verdict,
+                  fakeNewsScore: scoreData
+                }];
+                setArticles(result);
+                updateVerdict(verdict);
+              })
+              .catch(() => {
+                setArticles([{
+                  source: article.sectionName || 'The Guardian',
+                  title: article.webTitle,
+                  url: article.webUrl,
+                  credibility: 90,
+                  sentiment: 'neutral',
+                  date: article.publicationDate || 'recent',
+                  excerpt: article.trailText || '',
+                  verdict: 'mixed'
+                }]);
+                updateVerdict('mixed');
+              })
+              .finally(() => setLoading(false));
           })
           .catch(err => {
             setError(err.message || 'failed to fetch article');
             setLoading(false);
           });
-        return; // handled as single-article flow
+        return;
       }
     } catch (e) {
-      // not a URL, continue to treat q as search term
+      // not a URL, treat as search term
     }
 
-    // Default: treat q as a search query and fetch multiple articles with analysis
-    axios
-      .get(`/api/news/guardian/search-with-analysis`, { params: { q, pageSize: 10 } })
+    // Default search
+    axios.get(`/api/news/guardian/search-with-analysis`, { params: { q, pageSize: 10 } })
       .then(res => {
         if (res.data && Array.isArray(res.data.data)) {
-          setArticles(res.data.data.map(a => ({
+          const mapped = res.data.data.map(a => ({
             source: a.source || a.sectionName || a.byline || 'Guardian',
             title: a.webTitle || a.title || a.name,
             url: a.webUrl || a.url || '#',
             credibility: a.credibility || 80,
-            sentiment: a.sentiment || 'neutral',
+            // Use real sentiment from sentimentService
+            sentiment: a.sentiment?.label || a.sentiment || 'neutral',
             date: a.webPublicationDate || a.pubDate || 'recent',
             excerpt: a.trailText || a.description || '',
-            verdict: (a.fakeNewsScore && a.fakeNewsScore.riskLevel) ? mapRiskToVerdict(a.fakeNewsScore.riskLevel) : 'mixed'
-          })));
+            // Use real risk level from fakeNewsScoringService
+            verdict: a.fakeNewsScore?.riskLevel
+              ? mapRiskToVerdict(a.fakeNewsScore.riskLevel)
+              : a.verdict || 'mixed',
+            // Store the breakdown for potential display
+            fakeScore: a.fakeNewsScore?.fakeProbability,
+            riskLevel: a.fakeNewsScore?.riskLevel,
+            flags: a.fakeNewsScore?.flags || [],
+          }));
+          setArticles(mapped);
+          updateVerdict(getOverallVerdict(mapped));
         } else {
           setArticles([]);
         }
@@ -124,23 +163,34 @@ export default function ResultsPage() {
       .finally(() => setLoading(false));
   }, [q]);
 
-  function mapRiskToVerdict(risk) {
-    if (!risk) return 'mixed';
-    const r = risk.toUpperCase();
-    if (r === 'LOW') return 'verified';
-    if (r === 'MODERATE' || r === 'PARTIALLY_VERIFIED') return 'mixed';
-    if (r === 'HIGH' || r === 'VERY_HIGH' || r === 'UNVERIFIED') return 'disputed';
-    return 'mixed';
-  }
+  const sentimentData = articles.map(a => {
+    const s = a.sentiment?.toLowerCase() || 'neutral';
+    const isPositive = s === 'positive';
+    const isNegative = s === 'negative';
+    return {
+      source: (a.source || 'Unknown').substring(0, 15),
+      positive: isPositive ? 70 : 20,
+      neutral: !isPositive && !isNegative ? 70 : 20,
+      negative: isNegative ? 70 : 10,
+    };
+  });
 
-  const sentimentData = articles.length
-    ? articles.map(a => ({ source: a.source, positive: Math.floor(Math.random() * 40) + 20, neutral: Math.floor(Math.random() * 50) + 20, negative: Math.floor(Math.random() * 30) }))
-    : [];
+  const positiveCount = articles.filter(a => a.sentiment?.toLowerCase() === 'positive').length;
+  const negativeCount = articles.filter(a => a.sentiment?.toLowerCase() === 'negative').length;
+  const neutralCount = articles.filter(a => !a.sentiment || a.sentiment?.toLowerCase() === 'neutral').length;
+  const total = articles.length || 1;
 
-  const overallSentiment = [
-    { name: 'Positive', value: 31, color: '#22c55e' },
-    { name: 'Neutral', value: 48, color: '#64748b' },
-    { name: 'Negative', value: 21, color: '#ef4444' }
+  // If all zeros (no sentiment data), show placeholder distribution
+  const hasRealSentiment = positiveCount + negativeCount + neutralCount > 0;
+
+  const overallSentiment = hasRealSentiment ? [
+    { name: 'Positive', value: Math.round((positiveCount / total) * 100), color: '#22c55e' },
+    { name: 'Neutral', value: Math.round((neutralCount / total) * 100), color: '#64748b' },
+    { name: 'Negative', value: Math.round((negativeCount / total) * 100), color: '#ef4444' },
+  ] : [
+    { name: 'Positive', value: 33, color: '#22c55e' },
+    { name: 'Neutral', value: 34, color: '#64748b' },
+    { name: 'Negative', value: 33, color: '#ef4444' },
   ];
 
   const getVerdictBadge = (verdict) => {
@@ -157,152 +207,198 @@ export default function ResultsPage() {
   };
 
   return (
-    <Layout>
+    <UserLayout>
       <div className="results-page">
-        <div className="container">
+
+        {/* HEADER */}
+        <div className="results-header">
           <h1 className="results-title">Fact-Check Results</h1>
-          <p className="results-sub">Analyzing "<strong>{q}</strong>" across multiple sources</p>
+          <p className="results-query">Analyzing "<strong>{q}</strong>" across multiple sources</p>
+        </div>
 
-          <section className="summary">
-            <div className="summary-card">
-              <h3>Overall Assessment</h3>
-              <p>Based on analysis of {articles.length} sources.</p>
-            </div>
-          </section>
+        {/* OVERALL ASSESSMENT */}
+        {!loading && articles.length > 0 && (
+          <div className="assessment-bar">
+            <p className="assessment-label">Overall verdict</p>
+            <p className="assessment-verdict">
+              {getVerdictBadge(getOverallVerdict(articles))}
+            </p>
+            <span className="assessment-sources">
+              Based on {articles.length} source{articles.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+        )}
 
-          {loading && <div className="muted">Loading analysis…</div>}
-          {error && <div className="error">Error: {error}</div>}
+        {/* LOADING */}
+        {loading && (
+          <div className="loading-state">
+            <div className="spinner" />
+            <p>Analyzing sources...</p>
+          </div>
+        )}
 
-          <section className="tabs">
+        {/* ERROR */}
+        {error && (
+          <div className="error-state">
+            Error: {error}
+          </div>
+        )}
+
+        {/* TABS */}
+        {!loading && (
+          <section>
             <div className="tab-list">
-              <button className="tab active">Source Comparison</button>
-              <button className="tab">Sentiment Analysis</button>
+              <button
+                className={`tab ${activeTab === 'sources' ? 'active' : ''}`}
+                onClick={() => setActiveTab('sources')}
+              >
+                Source Comparison
+              </button>
+              <button
+                className={`tab ${activeTab === 'sentiment' ? 'active' : ''}`}
+                onClick={() => setActiveTab('sentiment')}
+              >
+                Sentiment Analysis
+              </button>
             </div>
 
             <div className="tab-content">
-              <div className="sources">
-                {articles.length === 0 && !loading && <div className="muted">No articles found.</div>}
-                {articles.map((article, idx) => (
-                  <article key={idx} className="source-card">
-                    <header>
-                      <div className="left">
-                        <h4>{article.source}</h4>
-                        <span className={`cred ${getCredibilityColor(article.credibility)}`}>
-                          {article.credibility}% credibility
-                        </span>
-                      </div>
-                      <div className="right">{getVerdictBadge(article.verdict)}</div>
-                    </header>
-                    <p className="excerpt">{article.title}</p>
-                    <p className="excerpt small">{article.excerpt}</p>
-                    <div className="meta">
-                      <span className="date">{article.date}</span>
-                      <a href={article.url} target="_blank" rel="noreferrer" className="read">
-                        Read full article <ExternalLinkIcon className="icon"/>
-                      </a>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              {activeTab === 'sources' && (
+                <div className="sources">
+                  {articles.length === 0 && (
+                    <div className="muted">No articles found for this query.</div>
+                  )}
+                  {articles.map((article, idx) => (
+                    <article key={idx} className="source-card">
+                      <header>
+                        <div className="left">
+                          <h4>{article.source}</h4>
+                          <span className={`cred ${getCredibilityColor(article.credibility)}`}>
+                            {article.credibility}% credibility
+                          </span>
+                        </div>
+                        <div className="right">
+                          {getVerdictBadge(article.verdict)}
+                        </div>
+                      </header>
+                      <p className="excerpt">{article.title}</p>
+                      {article.excerpt && (
+                        <p className="excerpt small">{article.excerpt}</p>
+                      )}
 
-              {/* 🔥 FIXED CHART SECTION */}
-              <div className="sentiment">
-                
-                {/* PIE CHART */}
-                <div className="chart-card">
-                  <h4>Overall Sentiment Distribution</h4>
-                  <div style={{ height: 240 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={overallSentiment}
-                          dataKey="value"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          stroke="none"
-                          label={({ name, value }) => `${name}: ${value}%`}
-                        >
-                          {overallSentiment.map((entry, i) => (
-                            <Cell key={i} fill={entry.color} />
+                      {article.fakeScore !== undefined && (
+                        <div className="fake-score-bar">
+                          <span className="fake-score-label">
+                            Misinformation risk: {Math.round(article.fakeScore)}%
+                          </span>
+                          <div className="fake-score-track">
+                            <div
+                              className="fake-score-fill"
+                              style={{
+                                width: `${article.fakeScore}%`,
+                                background: article.fakeScore > 60
+                                  ? '#ef4444'
+                                  : article.fakeScore > 40
+                                    ? '#fbbf24'
+                                    : '#4ade80'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      {article.flags && article.flags.length > 0 && (
+                        <div className="flags-list">
+                          {article.flags.slice(0, 3).map((flag, fi) => (
+                            <span key={fi} className="flag-tag">{flag}</span>
                           ))}
-                        </Pie>
+                        </div>
+                      )}
+                      <div className="meta">
+                        <span className="date">
+                          {new Date(article.date).toLocaleDateString('en-US', {
+                            year: 'numeric', month: 'short', day: 'numeric'
+                          }) || article.date}
+                        </span>
+                        <a href={article.url} target="_blank" rel="noreferrer" className="read">
+                          Read full article <ExternalLinkIcon className="icon" />
+                        </a>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
 
-                        <Tooltip
-                          contentStyle={{
-                            background: "transparent",
-                            border: "none",
-                            boxShadow: "none"
-                          }}
-                          wrapperStyle={{
-                            background: "transparent",
-                            border: "none"
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
+              {activeTab === 'sentiment' && (
+                <div className="sentiment">
+                  <div className="chart-card">
+                    <h4>Overall Sentiment Distribution</h4>
+                    <div style={{ height: 260 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={overallSentiment}
+                            dataKey="value"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={90}
+                            stroke="none"
+                            label={({ name, value }) => `${name}: ${value}%`}
+                            labelLine={false}
+                          >
+                            {overallSentiment.map((entry, i) => (
+                              <Cell key={i} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              background: 'rgba(8,14,35,0.95)',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              borderRadius: '8px',
+                              color: '#e2e8f0'
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div className="chart-card">
+                    <h4>Overall Sentiment Distribution</h4>
+                    <div style={{ width: '100%', height: 280 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={overallSentiment}
+                            dataKey="value"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            stroke="none"
+                            label={({ name, value }) => `${name}: ${value}%`}
+                            labelLine={true}
+                          >
+                            {overallSentiment.map((entry, i) => (
+                              <Cell key={i} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              background: 'rgba(8,14,35,0.95)',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              borderRadius: '8px',
+                              color: '#e2e8f0'
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
-
-                {/* BAR CHART */}
-                <div className="chart-card">
-                  <h4>Sentiment by Source</h4>
-                  <div style={{ height: 340 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={sentimentData}
-                        margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
-                      >
-                        <CartesianGrid
-                          stroke="rgba(255,255,255,0.08)"
-                          fill="transparent"
-                        />
-
-                        <XAxis
-                          dataKey="source"
-                          stroke="#9aa3b2"
-                          tick={{ fill: "#9aa3b2" }}
-                        />
-
-                        <YAxis
-                          stroke="#9aa3b2"
-                          tick={{ fill: "#9aa3b2" }}
-                        />
-
-                        <Tooltip
-                          contentStyle={{
-                            background: "transparent",
-                            border: "none",
-                            boxShadow: "none"
-                          }}
-                          wrapperStyle={{
-                            background: "transparent",
-                            border: "none"
-                          }}
-                        />
-
-                        <Legend 
-                          wrapperStyle={{
-                            background: "transparent",
-                            border: "none"
-                          }}
-                        />
-
-                        <Bar dataKey="positive" stackId="a" fill="#22c55e" />
-                        <Bar dataKey="neutral" stackId="a" fill="#64748b" />
-                        <Bar dataKey="negative" stackId="a" fill="#ef4444" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-              </div>
-              {/* 🔥 END FIX */}
-
+              )}
             </div>
           </section>
-        </div>
+        )}
       </div>
-    </Layout>
+    </UserLayout>
   );
 }
