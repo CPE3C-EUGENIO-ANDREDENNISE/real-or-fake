@@ -224,7 +224,7 @@ button[role="tab"].active {
 .tabs {
   display: flex;
   flex-wrap: wrap;
-  background: none !important;
+  background: #f8f9fa;
   border-bottom: 2px solid #e9ecef;
   overflow-x: auto;
   scrollbar-width: thin;
@@ -267,6 +267,12 @@ button[role="tab"].active {
 }
 
 .section-title {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1.3em;
+}
+
+.section-title b {
   margin: 0 0 10px 0;
   color: #333;
   font-size: 1.3em;
