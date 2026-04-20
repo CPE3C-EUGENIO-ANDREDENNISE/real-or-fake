@@ -14,7 +14,9 @@ CREATE TABLE
         role VARCHAR(50) DEFAULT 'user',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        is_logged_in TINYINT (1) DEFAULT 0
+        is_logged_in TINYINT (1) DEFAULT 0,
+        two_factor_secret VARCHAR(255) NULL,
+        two_factor_enabled TINYINT (1) DEFAULT 0
     );
 
 CREATE TABLE

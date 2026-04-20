@@ -18,6 +18,11 @@ export default function authMiddleware(req, res, next) {
         // Verify token
         const decoded = jwt.verify(token, config.JWT_SECRET);
 
+        // Check if the user has passed 2FA and is marked as active
+        if (decoded.two_factor_enabled && !decoded.two_factor_passed) {
+            return res.status(403).json({ error: '2FA pending' });
+        }
+
         // Attach user info to request for use in route handlers
         req.user = decoded;
 

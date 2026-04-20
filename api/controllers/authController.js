@@ -70,7 +70,9 @@ export async function register(req, res) {
 // POST /api/auth/login - Login user
 export async function login(req, res) {
     try {
-        const { email, password } = req.body;
+        const { email, password, mfaCode } = req.body;
+        let user;
+        let token;
 
         if (!email || !password) {
             return res.status(400).json({ error: 'email and password are required' });
@@ -80,7 +82,7 @@ export async function login(req, res) {
         const normalizedEmail = email.toLowerCase();
 
         // Find user
-        const user = await User.findByEmail(normalizedEmail);
+        user = await User.findByEmail(normalizedEmail);
 
         if (!user) {
             return res.status(401).json({ error: 'User not found' });
@@ -93,8 +95,21 @@ export async function login(req, res) {
             return res.status(401).json({ error: 'Invalid password' });
         }
 
+        // If 2FA is enabled, require code
+        if (user.two_factor_enabled && !mfaCode) {
+            return res.status(403).json({ error: '2FA required' });
+        }
+
+        if (user.two_factor_enabled && mfaCode) {
+            // Verify 2FA code
+            const is2faValid = await argon2.verify(user.two_factor_secret, mfaCode);
+            if (!is2faValid) {
+                return res.status(403).json({ error: 'Invalid 2FA code' });
+            }
+        }
+
         // Generate JWT token
-        const token = jwt.sign(
+        token = jwt.sign(
             { id: user.id, username: user.username, email: user.email, role: user.role },
             config.JWT_SECRET,
             { expiresIn: config.JWT_EXPIRES_IN }
@@ -110,7 +125,6 @@ export async function login(req, res) {
                 role: user.role
             }
         });
-
     } catch (err) {
         console.error('Login error:', err.message, err.stack);
         return res.status(500).json({
@@ -145,6 +159,51 @@ export async function logout(req, res) {
     } catch (err) {
         console.error('Logout error:', err.message);
         res.status(500).json({ error: 'logout failed' });
+    }
+}
+
+// POST /api/auth/setup-2fa - Enable 2FA for user
+export async function setup2fa(req, res) {
+    try {
+        const { email, code } = req.body;
+        
+        if (!email || !code) {
+            return res.status(400).json({ error: 'email and code are required' });
+        }
+        
+        // 1. Find user by email (to ensure user exists)
+        const user = await User.findByEmail(email);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // --- MOCK TOTP GENERATION (Requires external library in real-world scenario) ---
+        // For demonstration, we mock the secret and assume we used a library to verify the code.
+        const mockSecret = 'MOCK_SECRET_KEY_FOR_2FA_SETUP'; 
+        const isCodeValid = await argon2.verify(mockSecret, code); // This is just for flow completion
+
+        if (!isCodeValid) {
+            return res.status(403).json({ error: 'Invalid verification code provided' });
+        }
+        // --- END MOCK ---
+
+        // 2. Update user with the new secret and enable 2FA
+        const success = await User.updateTwoFactor(user.id, mockSecret, true);
+
+        if (!success) {
+            return res.status(500).json({ error: 'Failed to update 2FA settings' });
+        }
+
+        // 3. Return the necessary info for the client to save the secret (QR code)
+        res.json({ 
+            message: '2FA successfully enabled', 
+            secret: mockSecret 
+        });
+
+    } catch (err) {
+        console.error('2FA setup error:', err.message);
+        res.status(500).json({ error: '2FA setup failed' });
     }
 }
 
