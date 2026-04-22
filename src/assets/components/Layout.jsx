@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../../styles/layout.css";
 import Footer from "./Footer";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/images/logo.png";
 
 export default function Layout({ children, hideFooter = false }) {
   const canvasRef = useRef(null);
