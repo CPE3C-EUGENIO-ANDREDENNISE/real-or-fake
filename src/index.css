@@ -54,6 +54,10 @@
   }
 }
 
+[data-theme="light"] body {
+  background: #f0f4ff;
+}
+
 body {
   margin: 0;
   padding: 0;
