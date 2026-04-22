@@ -51,7 +51,7 @@ export default function HomePage() {
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <input
-              placeholder="Search the truth behind the headlines..."
+              placeholder="Input news headline or check it by link or image"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
